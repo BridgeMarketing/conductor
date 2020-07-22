@@ -65,9 +65,9 @@ services:
         max-size: "1k"
         max-file: "3"
 
-  # https://www.elastic.co/guide/en/elasticsearch/reference/5.6/docker.html
+  # https://www.elastic.co/guide/en/elasticsearch/reference/6.8/docker.html
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.8
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.8.10
     environment:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - transport.host=0.0.0.0
@@ -92,8 +92,6 @@ services:
         max-file: "3"
 
 volumes:
-  cs-data:
-    driver: local
   es-data:
     driver: local
   redis-data:
