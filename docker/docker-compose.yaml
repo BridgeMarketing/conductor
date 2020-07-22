@@ -92,8 +92,6 @@ services:
         max-file: "3"
 
 volumes:
-  cs-data:
-    driver: local
   es-data:
     driver: local
   redis-data:
