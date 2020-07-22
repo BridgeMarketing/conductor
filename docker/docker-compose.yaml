@@ -1,24 +1,19 @@
-version: '2.3'
+version: '2.4'
 
 services:
   conductor-server:
-    environment:
-      - CONFIG_PROP=config.properties
     image: conductor:server
-    build:
-      context: ../
-      dockerfile: docker/server/Dockerfile
     networks:
       - internal
     ports:
       - 8080:8080
+    volumes:
+      - ./server/config/config.properties:/app/config/config.properties
     links:
       - elasticsearch:es
-      - dynomite:dyno1
+      - redis:r1
     depends_on:
       elasticsearch:
-        condition: service_healthy
-      dynomite:
         condition: service_healthy
     logging:
       driver: "json-file"
@@ -40,17 +35,30 @@ services:
     links:
       - conductor-server
 
-  dynomite:
-    image: v1r3n/dynomite
+  redis:
+    image: redis:6
     networks:
       - internal
     ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1k"
+        max-file: "3"
+
+  dyno1:
+    image: 782253790350.dkr.ecr.us-east-1.amazonaws.com/bridge/conductor/dynomite:latest
+    networks:
+      - internal
+    volumes:
+      - ./server/dynomite/redis_docker.yml:/dynomite/conf/redis_bridge.yml
+    ports:
       - 8102:8102
-    healthcheck:
-      test: timeout 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/8102'
-      interval: 5s
-      timeout: 5s
-      retries: 12
+      - 22222:22222
+      - 8101:8101
     logging:
       driver: "json-file"
       options:
@@ -65,6 +73,8 @@ services:
       - transport.host=0.0.0.0
       - discovery.type=single-node
       - xpack.security.enabled=false
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
     networks:
       - internal
     ports:
@@ -80,6 +90,14 @@ services:
       options:
         max-size: "1k"
         max-file: "3"
+
+volumes:
+  cs-data:
+    driver: local
+  es-data:
+    driver: local
+  redis-data:
+    driver: local
 
 networks:
   internal:
